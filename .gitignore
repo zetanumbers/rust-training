@@ -1,5 +1,7 @@
+dot
 html
 mdbook
 mdbook-graphviz
+mdbook-mermaid
 mdslides
 target

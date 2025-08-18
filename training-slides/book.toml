@@ -1,6 +1,6 @@
 [book]
 authors = ["Ferrous Systems"]
-language = "en"
+language = "ru"
 multilingual = false
 src = "src"
 title = "Rust Training Slides by Ferrous Systems"

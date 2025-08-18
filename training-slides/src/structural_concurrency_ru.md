@@ -1,4 +1,17 @@
-# Collections
+# Структурная конкуренция: Незабываемые типы
+
+## Дисклеймер
+
+Этот доклад требует продвинутого понимания языка Rust и в первую очередь сделан для любителей языка.
+
+## Проблема
+
+Работать в async Rust сложно.
+
+Notes:
+
+За сложностью использования async в Rust стоят вполне определённые причины.
+В контрасте с многопоточным кодом возникают проблемы с лайфтаймами и тред-безопасностью.
 
 ## Using Arrays
 
@@ -275,7 +288,7 @@ fn main() {
 
 ## Appending to a String
 
-```rust [1-7|2|3|4|5-6]
+```rust [1-7|2,4|3|4|5-6]
 fn main() {
     let mut start = "Mary had a ".to_string();
     start.push_str("little");
@@ -369,13 +382,13 @@ fn entry(&mut self, key: K) -> Entry<K, V> {
 
 ```rust []
 use std::collections::HashMap;
- 
+
 fn update_connection(map: &mut HashMap<i32, u64>, id: i32) {
     map.entry(id)
         .and_modify(|v| *v = *v + 1)
         .or_insert(1);
 }
- 
+
 fn main() {
     let mut map = HashMap::new();
     update_connection(&mut map, 100);
