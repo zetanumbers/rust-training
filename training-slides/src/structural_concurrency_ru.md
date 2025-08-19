@@ -1,17 +1,189 @@
-# Структурная конкуренция: Незабываемые типы
+# Структурная конкуренция
+
+Незабываемые типы
 
 ## Дисклеймер
 
 Этот доклад требует продвинутого понимания языка Rust и в первую очередь сделан для любителей языка.
 
-## Проблема
-
-Работать в async Rust сложно.
+## Работать в асинхронном Rust тяжело.
 
 Notes:
 
 За сложностью использования async в Rust стоят вполне определённые причины.
-В контрасте с многопоточным кодом возникают проблемы с лайфтаймами и тред-безопасностью.
+В контрасте с многопоточным кодом возникают проблемы с заимствованием (borrowing) и тред-безопасыми (thread-safe) типами.
+
+## Асинхронные задачи (async tasks)
+
+```rust [1-7|3-5|7]
+use tokio::task;
+let s0 = "Hello, world!".to_string();
+let t0 = task::spawn(async {
+    do_work(s0).await
+});
+do_other_work().await;
+let r0 = t0.await;
+```
+
+Notes:
+
+Пример использования асинхронных задач (async tasks) из tokio.
+
+## Заимствование в задачах
+
+```rust [1-7|2,4|3]
+let s0 = "Hello, world!".to_string();
+let s1 = &s0[..];
+let t0 = task::spawn(async { // ERROR: `s1` must be `'static`
+    do_work(s1).await
+});
+do_other_work().await;
+let r0 = t0.await;
+```
+
+## Задачи могут быть только `'static`
+
+```rust []
+pub fn spawn<F>(future: F) -> JoinHandle<F::Output>
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{ /* ... */ }
+```
+
+Notes:
+
+Исполнение задачи, в зависимости от вашего кода, может занять сколько угодно времени, даже если какие-то заимствующие ссылки (borrows) станут недействительными.
+
+## Решение: ждать завершение задачи
+
+```rust []
+pub fn spawn_scoped<'a, F>(future: F) -> ScopedJoinHandle<'a, F::Output>
+where
+    F: Future + Send + 'a,
+    F::Output: Send + 'a,
+{ /* ... */ }
+
+impl<T> Drop for ScopedJoinHandle<'_, T> {
+    fn drop(&mut self) {
+        block_on(self);
+    }
+}
+```
+
+## Rust не гарантирует вызова drop
+
+```rust [1-8|1,7|3,5,8]
+use std::mem::forget;
+let mut s0 = "Hello, world!".to_string();
+let s1 = &s0[..];
+let t0 = task::spawn_scoped(async {
+    do_work(s1).await;
+});
+forget(t0);
+s0.clear(); // `t0` could use now invalid `s1`
+```
+
+Notes:
+
+Существует такая функция `std::mem::forget`, которая просто убирает аргумент из scope, не вызывая деструктор, aka `drop`.
+
+С помощью нее можно просто забыть о ранее запущенных задач, даже если они заимствуют локальные данные на стэке, которые впоследствии станут недействительными.
+
+## Заимствующие потоки (threads)
+
+```rust []
+use std::thread;
+let mut s0 = "Hello, world!".to_string();
+let s1 = &s0[..];
+let t0 = thread::scoped(|| {
+    do_work(s1);
+});
+forget(t0);
+s0.clear(); // `t0` could use now invalid `s1`
+```
+
+## `std::mem::forget`
+
+```rust []
+struct Leak<T>(mpsc::Receiver<Leak<T>>, T);
+
+pub fn forget<T>(data: T) {
+    let (tx, rx) = mpsc::channel();
+    tx.send(Leak(rx, data)).unwrap(); // Create a cycle
+}
+```
+
+Notes:
+
+Почему же такая плохая функция присутствует в языке?
+На самом деле сегодня Rust не может гарантировать, чтобы вызов вообще drop произошёл.
+Это можно проиллюстрировать создав подобную функцию с помощью mpsc каналов.
+
+Об этом факте узнали совсем незадолго до релиза Rust 1.0.
+До этого такая гарантия присутствовала в языке, но потом из-за временных рамок от неё решили просто отказаться.
+
+## `std::thread::scope`
+
+```rust [1-9|1-3|4-6|7|8]
+let s0 = String::from("Hello, world!");
+let s1 = &s0[..];
+std::thread::scope(|scope| {
+    let t0 = scope.spawn(|| {
+        do_work(s1);
+    });
+    do_other_work();
+    let r0 = t0.join().unwrap();
+})
+```
+
+Notes:
+
+В случае с потоками эту проблему обошли с помощью `std::thread::scope`.
+Данный интерфейс работает с помощью подпрограмм (subroutines), то есть обычных функций, а точнее с помощью гарантированного порядка исполнения вложенных подпрограмм.
+
+## `tokio::task::scope`?
+
+```rust [1-9|9]
+let s0 = String::from("Hello, world!");
+let s1 = &s0[..];
+task::scope(async |scope| {
+    let t0 = scope.spawn(async {
+        do_work(s1).await;
+    });
+    do_other_work().await;
+    let r0 = t0.await;
+}).await
+```
+
+## Контрпример
+
+```rust [1-15|4-10|3,11|12|12,5-7|12-13,8|14|15]
+let mut s0 = String::from("Hello, world!");
+let s1 = &s0[..];
+let mut fut = Box::pin(async {
+    task::scope(async |scope| {
+        let t0 = scope.spawn(async {
+            do_work(s1).await;
+        });
+        task::yield_now().await;
+        let r0 = t0.await;
+    }.await
+}));
+assert_eq!(poll_once(fut.as_mut()), Poll::Pending);
+// `fut` progress is now on line 8
+forget(fut);
+s0.clear(); // `t0` could use now invalid `s1`
+```
+
+Notes:
+
+В контрасте, асинхронный Rust реализован с помощью сопрограмм (coroutines), вследствие чего вышеупомянутый подход просто так не работает.
+
+В данном примере мы используем гипотетический интерфейс внутри футуры, которую мы выполним только наполовину, а затем забудем.
+Для этого мы воспользуемся `yield_now` футурой, способной один раз приостанавливать исполнение async кода.
+
+## Вопросы
 
 ## Using Arrays
 
