@@ -1,0 +1,567 @@
+<!DOCTYPE HTML>
+<html lang="ru" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Структурная конкуренция - Rust Training Slides by Ferrous Systems</title>
+
+
+        <!-- Custom HTML head -->
+        <!--
+        Load mermaid from the CDN.
+        -->
+        
+        <script type="module">
+            import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        </script>
+        <style>
+            pre code .b {
+                font-weight: bold;
+            }
+        
+            pre code .er {
+                font-weight: bold;
+                color: #F15D22;
+            }
+        
+            pre code .eb {
+                font-weight: bold;
+                color: #48B9C7;
+            }
+        
+            pre code .eg {
+                font-weight: bold;
+                color: #73C48F;
+            }
+        
+            pre code .help {
+                font-weight: bold;
+                color: #00FFFF;
+            }
+            pre code .gr {
+                font-weight: bold;
+                color: #808080;
+            }
+        </style>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="glossary.html">Glossary</a></li><li class="chapter-item expanded affix "><li class="part-title">Rust Fundamentals</li><li class="chapter-item expanded "><a href="structural_concurrency_ru.html" class="active"><strong aria-hidden="true">1.</strong> Структурная конкуренция</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Rust Training Slides by Ferrous Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="Структурная-конкурентность"><a class="header" href="#Структурная-конкурентность">Структурная конкурентность</a></h1>
+<p>Незабываемые типы</p>
+<h2 id="Дисклеймер"><a class="header" href="#Дисклеймер">Дисклеймер</a></h2>
+<p>Этот доклад требует продвинутого понимания языка Rust и в первую очередь сделан для любителей языка.</p>
+<h2 id="Работать-в-асинхронном-rust-тяжело"><a class="header" href="#Работать-в-асинхронном-rust-тяжело">Работать в асинхронном Rust тяжело.</a></h2>
+<p>Notes:</p>
+<p>В контрасте с многопоточным кодом возникают проблемы с заимствованием (borrowing) и тред-безопасыми (thread-safe) типами.</p>
+<h2 id="Асинхронные-задачи-async-tasks"><a class="header" href="#Асинхронные-задачи-async-tasks">Асинхронные задачи (async tasks)</a></h2>
+<pre><pre class="playground"><code class="language-rust [1-7|3-5|7]"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use tokio::task;
+let s0 = "Hello, world!".to_string();
+let t0 = task::spawn(async {
+    do_work(s0).await
+});
+do_other_work().await;
+let r0 = t0.await;
+<span class="boring">}</span></code></pre></pre>
+<p>Notes:</p>
+<p>Пример использования асинхронных задач (async tasks) из tokio.</p>
+<h2 id="Заимствование-в-задачах"><a class="header" href="#Заимствование-в-задачах">Заимствование в задачах</a></h2>
+<pre><pre class="playground"><code class="language-rust [1-7|2 4|3]"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let s0 = "Hello, world!".to_string();
+let s1 = &amp;s0[..];
+let t0 = task::spawn(async { // ERROR: `s1` must be `'static`
+    do_work(s1).await
+});
+do_other_work().await;
+let r0 = t0.await;
+<span class="boring">}</span></code></pre></pre>
+<h2 id="Задачи-могут-быть-только-static"><a class="header" href="#Задачи-могут-быть-только-static">Задачи могут быть только <code>'static</code></a></h2>
+<pre><pre class="playground"><code class="language-rust []"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub fn spawn&lt;F&gt;(future: F) -&gt; JoinHandle&lt;F::Output&gt;
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{ /* ... */ }
+<span class="boring">}</span></code></pre></pre>
+<p>Notes:</p>
+<p>Исполнение задачи, может занять сколько угодно времени, даже если какие-то заимствующие ссылки (borrows) станут недействительными.</p>
+<h2 id="Решение-ждать-завершение-задачи"><a class="header" href="#Решение-ждать-завершение-задачи">Решение: ждать завершение задачи</a></h2>
+<pre><pre class="playground"><code class="language-rust []"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub fn spawn_scoped&lt;'a, F&gt;(future: F) -&gt; ScopedJoinHandle&lt;'a, F::Output&gt;
+where
+    F: Future + Send + 'a,
+    F::Output: Send + 'a,
+{ /* ... */ }
+
+impl&lt;T&gt; Drop for ScopedJoinHandle&lt;'_, T&gt; {
+    fn drop(&amp;mut self) {
+        block_on(self);
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="rust-не-гарантирует-вызова-drop"><a class="header" href="#rust-не-гарантирует-вызова-drop">Rust не гарантирует вызова drop</a></h2>
+<pre><pre class="playground"><code class="language-rust [1-8|1 7|3 5 8]"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use std::mem::forget;
+let mut s0 = "Hello, world!".to_string();
+let s1 = &amp;s0[..];
+let t0 = task::spawn_scoped(async {
+    do_work(s1).await;
+});
+forget(t0);
+s0.clear(); // `t0` could use now invalid `s1`
+<span class="boring">}</span></code></pre></pre>
+<p>Notes:</p>
+<p>Существует такая функция <code>std::mem::forget</code>, которая просто убивает переменную, не вызывая на ней деструктор.</p>
+<p>Можно просто забыть о ранее запущенных задач, даже если они заимствуют локальные данные на стэке, которые впоследствии станут недействительными.</p>
+<h2 id="Заимствующие-потоки-threads"><a class="header" href="#Заимствующие-потоки-threads">Заимствующие потоки (threads)</a></h2>
+<pre><pre class="playground"><code class="language-rust []"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use std::thread;
+let mut s0 = "Hello, world!".to_string();
+let s1 = &amp;s0[..];
+let t0 = thread::scoped(|| {
+    do_work(s1);
+});
+forget(t0);
+s0.clear(); // `t0` could use now invalid `s1`
+<span class="boring">}</span></code></pre></pre>
+<h2 id="stdmemforget"><a class="header" href="#stdmemforget"><code>std::mem::forget</code></a></h2>
+<pre><pre class="playground"><code class="language-rust []"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Leak&lt;T&gt;(mpsc::Receiver&lt;Leak&lt;T&gt;&gt;, T);
+
+pub fn forget&lt;T&gt;(data: T) {
+    let (tx, rx) = mpsc::channel();
+    tx.send(Leak(rx, data)).unwrap(); // Create a cycle
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Notes:</p>
+<p>На самом деле сегодня Rust не может гарантировать, чтобы вызов drop вообще произошёл.
+Такую функцию можно реализовать с помощью mpsc каналов.</p>
+<p>Об этом факте узнали незадолго до релиза Rust 1.0.
+Раньше такая гарантия присутствовала в языке, но потом от неё решили отказаться из-за временных рамок.</p>
+<h2 id="stdthreadscope"><a class="header" href="#stdthreadscope"><code>std::thread::scope</code></a></h2>
+<pre><pre class="playground"><code class="language-rust [1-9|1-3|4-6|7|8]"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let s0 = String::from("Hello, world!");
+let s1 = &amp;s0[..];
+std::thread::scope(|scope| {
+    let t0 = scope.spawn(|| {
+        do_work(s1);
+    });
+    do_other_work();
+    let r0 = t0.join().unwrap();
+})
+<span class="boring">}</span></code></pre></pre>
+<p>Notes:</p>
+<p>В случае с потоками эту проблему обошли с помощью <code>std::thread::scope</code>.
+Данный интерфейс работает с помощью подпрограмм (subroutines), то есть обычных функций, а точнее с помощью гарантированного порядка исполнения вложенных подпрограмм.</p>
+<h2 id="tokiotaskscope"><a class="header" href="#tokiotaskscope"><code>tokio::task::scope</code>?</a></h2>
+<pre><pre class="playground"><code class="language-rust [1-9|9]"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let s0 = String::from("Hello, world!");
+let s1 = &amp;s0[..];
+task::scope(async |scope| {
+    let t0 = scope.spawn(async {
+        do_work(s1).await;
+    });
+    do_other_work().await;
+    let r0 = t0.await;
+}).await
+<span class="boring">}</span></code></pre></pre>
+<h2 id="Контрпример"><a class="header" href="#Контрпример">Контрпример</a></h2>
+<pre><pre class="playground"><code class="language-rust [1-15|4-10|3 11|12|12 5-7|12-13 8|14|15]"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let mut s0 = String::from("Hello, world!");
+let s1 = &amp;s0[..];
+let mut fut = Box::pin(async {
+    task::scope(async |scope| {
+        let t0 = scope.spawn(async {
+            do_work(s1).await;
+        });
+        task::yield_now().await;
+        let r0 = t0.await;
+    }.await
+}));
+assert_eq!(poll_once(fut.as_mut()), Poll::Pending);
+// `fut` progress is now on line 8
+forget(fut);
+s0.clear(); // `t0` could use now invalid `s1`
+<span class="boring">}</span></code></pre></pre>
+<p>Notes:</p>
+<p>В контрасте, асинхронный Rust реализован с помощью сопрограмм (coroutines), вследствие чего вышеупомянутый подход просто так не работает.</p>
+<p>Тут мы используем гипотетический интерфейс внутри футуры, которую мы выполним только наполовину, а затем забудем.
+Для этого мы воспользуемся <code>yield_now</code>.</p>
+<h2 id="forget-маркер"><a class="header" href="#forget-маркер"><code>Forget</code> маркер</a></h2>
+<pre><pre class="playground"><code class="language-rust []"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>unsafe auto trait Forget {}
+
+impl&lt;T: Forget&gt; Arc&lt;T&gt; {
+    pub fn new(data: T) -&gt; Self {
+        // ...
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Notes:</p>
+<p>Одно из напрашивающихся решений - добавить новый маркер-трейт по аналогии с <code>Send</code>, который даст использовать <code>forget</code>, <code>Rc</code> и другие интерфейсы по отношению, не ко всем, а только к "забываемым" типам.</p>
+<h2 id="Вложенные-незабываемые-типы"><a class="header" href="#Вложенные-незабываемые-типы">Вложенные незабываемые типы</a></h2>
+<pre><pre class="playground"><code class="language-rust []"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct JoinGuard&lt;'a, T&gt; {
+    // ...
+}
+// JoinGuard&lt;'a, T&gt;: !Forget =&gt; Foo&lt;'a, T&gt;: !Forget
+struct Foo&lt;'a, T&gt; {
+    inner: JoinGuard&lt;'a, T&gt;,
+    other_data: i32,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Notes:</p>
+<p>Нам важно чтобы тип <code>JoinGuard</code> не смог попасть в <code>forget</code> или <code>Rc</code>, даже если он вложен внутри другой структуры.
+Если какое-то поле структуры (<code>inner</code>) имеет незабываемый тип, то и тип самой структуры (<code>Foo</code>) считается незабываемым.</p>
+<h2 id="forget-не-предотвращает-утечки-памяти"><a class="header" href="#forget-не-предотвращает-утечки-памяти"><code>Forget</code> не предотвращает утечки памяти</a></h2>
+<pre><pre class="playground"><code class="language-rust []"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn forget&lt;T: 'static&gt;(data: T) {
+    std::thread::spawn(move || {
+        let _data = data;
+        loop {} // drop(_data) is never called
+    });
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Notes:</p>
+<p>Даже если мы определим тип как незабываемый (<code>!Forget</code>), это не даёт гарантию, что drop объекта когда-либо произойдёт.
+Это не позволяет нам так просто избавиться от утечек памяти, как до этого люди долго представляли себе решение этой проблемы.
+Поэтому в ранних упоминаниях <code>Forget</code> именуется <code>Leak</code>.</p>
+<h2 id="_-ツ_"><a class="header" href="#_-ツ_">¯\_ (ツ)_/¯</a></h2>
+<p>Notes:</p>
+<p>Но раз утечки памяти - безопасные, то какая разница?
+Главное, что <code>!Forget</code> заставляет компилятор всегда ассоциировать конец жизни объекта с вызовом drop.
+В случае с <code>JoinGuard&lt;’a, T&gt;</code> это действительно предотвращает инвалидацию заимствованных ссылок в купе с borrow checker.</p>
+<h2 id="t-static-означает-t-forget"><a class="header" href="#t-static-означает-t-forget"><code>T: 'static</code> означает <code>T: Forget</code>?</a></h2>
+<pre><pre class="playground"><code class="language-rust []"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn forget&lt;T: 'static&gt;(data: T) {
+    std::thread::spawn(move || {
+        let _data = data;
+        loop {} // drop(_data) is never called
+    });
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Notes:</p>
+<p>В таком случае, ничто не мешает нам утверждать, что <code>T: ’static</code> типы автоматически предполагают и <code>T: Forget</code>.</p>
+<h2 id="Рандеву-каналы"><a class="header" href="#Рандеву-каналы">Рандеву каналы</a></h2>
+<pre><pre class="playground"><code class="language-rust [|1-2|5 9]"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// let (tx, rx) = std::sync::mpsc::sync_channel(0);
+let (tx, rx) = rendezvois_channel();
+let t0 = std::thread::spawn(move || {
+    do_work();
+    let data = rx.recv().unwrap();
+    process_data(data);
+});
+let data = fetch_data();
+tx.send(data).unwrap();
+<span class="boring">}</span></code></pre></pre>
+<p>Notes:</p>
+<p>Для начала мне нужно уточнить что такое рандеву канал.
+Рандеву канал является частным случаем mpsc каналов с очередью нулевого размера.</p>
+<h2 id="Циклы-владения-тредами"><a class="header" href="#Циклы-владения-тредами">Циклы владения тредами</a></h2>
+<pre><pre class="playground"><code class="language-rust [|4 5 8]"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let mut s0 = "Hello, world!".to_string();
+let s1 = &amp;s0[..];
+let (tx, rx) = rendezvois_channel();
+let t0 = std::thread::scoped(move || {
+    let t0 = rx.recv().unwrap();
+    do_work(s1);
+});
+tx.send(t0).unwrap();
+s0.clear(); // `t0` could use now invalid `s1`
+<span class="boring">}</span></code></pre></pre>
+<p>Notes:</p>
+<p>Но можно поместить заимствующий тред сам в себя с помощью рандеву канала, хотя казалось бы обычными рекурсивными структурами такой цикл невозможно создать.</p>
+<h2 id="stdthreadscopedf-forgetf-f"><a class="header" href="#stdthreadscopedf-forgetf-f"><code>std::thread::scoped&lt;F: Forget&gt;(f: F)</code></a></h2>
+<pre><pre class="playground"><code class="language-rust []"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let mut s0 = "Hello, world!".to_string();
+let s1 = &amp;s0[..];
+let (tx, rx) = rendezvois_channel();
+let t0 = std::thread::scoped(move || {
+    let t0 = rx.recv().unwrap();
+    do_work(s1);
+});
+tx.send(t0).unwrap(); // ERROR: `t0` must be `Forget`
+s0.clear();
+<span class="boring">}</span></code></pre></pre>
+<h2 id="taskspawn_scopedf-forgetf-f"><a class="header" href="#taskspawn_scopedf-forgetf-f"><code>task::spawn_scoped&lt;F: Forget&gt;(f: F)</code></a></h2>
+<pre><pre class="playground"><code class="language-rust [|1 5]"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let t0 = task::spawn_scoped(async { // ERROR: `t1` must be `Forget`
+    let t1 = task::spawn_scoped(async {
+        do_work().await;
+    });
+    do_other_work().await; // because `t1` must stay alive across this await point
+    t1.await;
+});
+<span class="boring">}</span></code></pre></pre>
+<h2 id="joinguarda-t-send"><a class="header" href="#joinguarda-t-send"><code>JoinGuard&lt;'a, T&gt;: !Send</code></a></h2>
+<pre><pre class="playground"><code class="language-rust []"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let mut s0 = "Hello, world!".to_string();
+let s1 = &amp;s0[..];
+let (tx, rx) = rendezvois_channel();
+let t0 = std::thread::scoped(move || { // ERROR: `rx` must be `Send`
+    let t0 = rx.recv().unwrap();
+    do_work(s1);
+});
+tx.send(t0).unwrap();
+s0.clear();
+<span class="boring">}</span></code></pre></pre>
+<h2 id="scopedtaska-t-send"><a class="header" href="#scopedtaska-t-send"><code>ScopedTask&lt;'a, T&gt;: !Send</code></a></h2>
+<pre><pre class="playground"><code class="language-rust [|1 5]"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let t0 = task::spawn_scoped(async { // ERROR: `t1` must be `Send`
+    let t1 = task::spawn_scoped(async {
+        do_work().await;
+    });
+    do_other_work().await; // because `t1` must stay alive across this await point
+    t1.await;
+});
+<span class="boring">}</span></code></pre></pre>
+<p>Notes:</p>
+<p><code>spawn_scoped</code> может запустить задачу на другом треде, в отличии от <code>spawn_local_scoped</code>.</p>
+<h2 id="rendezvois_channelt-forget"><a class="header" href="#rendezvois_channelt-forget"><code>rendezvois_channel&lt;T: Forget&gt;()</code></a></h2>
+<pre><pre class="playground"><code class="language-rust []"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let mut s0 = "Hello, world!".to_string();
+let s1 = &amp;s0[..];
+let (tx, rx) = rendezvois_channel();
+let t0 = std::thread::scoped(move || {
+    let t0 = rx.recv().unwrap();
+    do_work(s1);
+});
+tx.send(t0).unwrap(); // ERROR: `t0` must be `Forget`
+s0.clear();
+<span class="boring">}</span></code></pre></pre>
+<p>Notes:</p>
+<p>Несмотря на видимое исправление, это решение основывается на множестве предположений, не являющиеся гарантиями языка как таковыми, однако для которых пока никто не смог придумать контрпример.
+Грубо говоря неясна фундаментальная разница между предачей данных в тред до или после создания <code>JoinGuard</code> объекта.
+Раз на уровне реализации такой разницы может и не существовать, то мы говорим об особенности системы типов.</p>
+<p>Так или иначе на данный момент это наиболее гибкое решение для внедрения в Rust, поэтому я больше всего склоняюсь к нему.</p>
+<h2 id="Спасибо-за-внимание"><a class="header" href="#Спасибо-за-внимание">Спасибо за внимание</a></h2>
+<p>Вопросы?</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="glossary.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="glossary.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE HTML>
+<html lang="ru" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Introduction - Rust Training Slides by Ferrous Systems</title>
+
+
+        <!-- Custom HTML head -->
+        <!--
+        Load mermaid from the CDN.
+        -->
+        
+        <script type="module">
+            import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        </script>
+        <style>
+            pre code .b {
+                font-weight: bold;
+            }
+        
+            pre code .er {
+                font-weight: bold;
+                color: #F15D22;
+            }
+        
+            pre code .eb {
+                font-weight: bold;
+                color: #48B9C7;
+            }
+        
+            pre code .eg {
+                font-weight: bold;
+                color: #73C48F;
+            }
+        
+            pre code .help {
+                font-weight: bold;
+                color: #00FFFF;
+            }
+            pre code .gr {
+                font-weight: bold;
+                color: #808080;
+            }
+        </style>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html" class="active">Introduction</a></li><li class="chapter-item expanded affix "><a href="glossary.html">Glossary</a></li><li class="chapter-item expanded affix "><li class="part-title">Rust Fundamentals</li><li class="chapter-item expanded "><a href="structural_concurrency_ru.html"><strong aria-hidden="true">1.</strong> Структурная конкуренция</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Rust Training Slides by Ferrous Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <p><img src="images/logo_ferrous-systems_rgb.png" alt="Our cute logo!" /></p>
+<h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
+<p>This book contains our training material, divided up into individual slide decks. Each deck is a <em>lesson</em>. Those <em>lessons</em> combine to form a <em>module</em>, which is taught during a series of <em>sessions</em> within a <em>training</em>. See <a href="./glossary.html">the glossary</a> for more details.</p>
+<p>This is the book version of our material. You can also see the lessons in slide form at <a href="https://rust-training.ferrous-systems.com/latest/slides">https://rust-training.ferrous-systems.com/latest/slides</a>.</p>
+<p>We have a standard grouping of <em>lessons</em> into <em>modules</em>, but this can be customised according to customer needs. The modules have dependencies - that is, pre-requisite knowledge required to get the most out of a particular module. The dependencies are shown in the following graphic.</p>
+<p>Most of our modules are available now (shown in green), but some are still in development and will be available in the future (shown in grey). We also have stand-alone courses (shown in blue).</p>
+<h2 id="ferrous-systems-rust-training-modules3advancedadvanced-rustappliedapplied-rustapplied-advancedbaremetalbare-metal-rustapplied-baremetalnostdno-std-rustapplied-nostdwasmrust-and-webassemblyapplied-wasmasyncasync-rustapplied-asyncembassyusing-embassybaremetal-embassyferroceneusing-ferrocenefundamentalsrust-fundamentalsfundamentals-appliednostd-ferrocenewhyferrocenewhy-ferrocenewhyrustwhy-rustasync-embassy"><a class="header" href="#ferrous-systems-rust-training-modules3advancedadvanced-rustappliedapplied-rustapplied-advancedbaremetalbare-metal-rustapplied-baremetalnostdno-std-rustapplied-nostdwasmrust-and-webassemblyapplied-wasmasyncasync-rustapplied-asyncembassyusing-embassybaremetal-embassyferroceneusing-ferrocenefundamentalsrust-fundamentalsfundamentals-appliednostd-ferrocenewhyferrocenewhy-ferrocenewhyrustwhy-rustasync-embassy">Ferrous Systems' Rust Training Modules<div class="mdbook-graphviz-output"><!-- Generated by graphviz version 2.40.1 (20161225.0304) --><!-- Title: %3 Pages: 1 --><svg width="664pt" height="264pt" viewBox="0.00 0.00 664.00 264.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 260)"><title>%3</title><polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-260 660,-260 660,4 -4,4"/><!-- Advanced --><g id="node1" class="node"><title>Advanced</title><polygon fill="#00cd00" stroke="#000000" points="0,-73.5 0,-109.5 108,-109.5 108,-73.5 0,-73.5"/><text text-anchor="middle" x="53.9611" y="-87.3" font-family="Times,serif" font-size="14.00" fill="#000000">Advanced Rust</text></g><!-- Applied --><g id="node2" class="node"><title>Applied</title><polygon fill="#00cd00" stroke="#000000" points="252,-146.5 252,-182.5 360,-182.5 360,-146.5 252,-146.5"/><text text-anchor="middle" x="305.6371" y="-160.3" font-family="Times,serif" font-size="14.00" fill="#000000">Applied Rust</text></g><!-- Applied&#45;&gt;Advanced --><g id="edge2" class="edge"><title>Applied-&gt;Advanced</title><path fill="none" stroke="#000000" d="M251.803,-148.9476C216.2962,-138.7412 168.6104,-125.0011 118.0917,-110.3121"/><polygon fill="#000000" stroke="#000000" points="118.8709,-106.8938 108.2912,-107.4609 116.9154,-113.6151 118.8709,-106.8938"/></g><!-- BareMetal --><g id="node3" class="node"><title>BareMetal</title><polygon fill="#00cd00" stroke="#000000" points="251.5431,-73.5 251.5431,-109.5 360.4569,-109.5 360.4569,-73.5 251.5431,-73.5"/><text text-anchor="middle" x="306" y="-87.3" font-family="Times,serif" font-size="14.00" fill="#000000">Bare-Metal Rust</text></g><!-- Applied&#45;&gt;BareMetal --><g id="edge5" class="edge"><title>Applied-&gt;BareMetal</title><path fill="none" stroke="#000000" d="M306,-146.4551C306,-138.3828 306,-128.6764 306,-119.6817"/><polygon fill="#000000" stroke="#000000" points="309.5001,-119.5903 306,-109.5904 302.5001,-119.5904 309.5001,-119.5903"/></g><!-- NoStd --><g id="node6" class="node"><title>NoStd</title><polygon fill="#00cd00" stroke="#000000" points="126,-73.5 126,-109.5 234,-109.5 234,-73.5 126,-73.5"/><text text-anchor="middle" x="179.8061" y="-87.3" font-family="Times,serif" font-size="14.00" fill="#000000">No-Std Rust</text></g><!-- Applied&#45;&gt;NoStd --><g id="edge3" class="edge"><title>Applied-&gt;NoStd</title><path fill="none" stroke="#000000" d="M274.8539,-146.4551C258.3465,-136.8912 237.8796,-125.0334 220.1876,-114.7833"/><polygon fill="#000000" stroke="#000000" points="221.6318,-111.575 211.2245,-109.5904 218.1226,-117.6319 221.6318,-111.575"/></g><!-- Wasm --><g id="node7" class="node"><title>Wasm</title><polygon fill="#00cd00" stroke="#000000" points="378.3464,-73.5 378.3464,-109.5 529.6536,-109.5 529.6536,-73.5 378.3464,-73.5"/><text text-anchor="middle" x="454" y="-87.3" font-family="Times,serif" font-size="14.00" fill="#000000">Rust and WebAssembly</text></g><!-- Applied&#45;&gt;Wasm --><g id="edge7" class="edge"><title>Applied-&gt;Wasm</title><path fill="none" stroke="#000000" d="M342.5843,-146.4551C362.4187,-136.6719 387.1197,-124.4883 408.2202,-114.0806"/><polygon fill="#000000" stroke="#000000" points="409.9035,-117.1529 417.3237,-109.5904 406.807,-110.8751 409.9035,-117.1529"/></g><!-- Async --><g id="node10" class="node"><title>Async</title><polygon fill="#d3d3d3" stroke="#000000" points="548,-73.5 548,-109.5 656,-109.5 656,-73.5 548,-73.5"/><text text-anchor="middle" x="601.9688" y="-87.3" font-family="Times,serif" font-size="14.00" fill="#000000">Async Rust</text></g><!-- Applied&#45;&gt;Async --><g id="edge6" class="edge"><title>Applied-&gt;Async</title><path fill="none" stroke="#000000" d="M360.3543,-152.6883C405.4918,-142.6749 471.5883,-127.541 537.9648,-110.2098"/><polygon fill="#000000" stroke="#000000" points="538.9752,-113.5632 547.7576,-107.6372 537.1965,-106.793 538.9752,-113.5632"/></g><!-- Embassy --><g id="node11" class="node"><title>Embassy</title><polygon fill="#d3d3d3" stroke="#000000" points="400,-.5 400,-36.5 508,-36.5 508,-.5 400,-.5"/><text text-anchor="middle" x="453.7444" y="-14.3" font-family="Times,serif" font-size="14.00" fill="#000000">Using Embassy</text></g><!-- BareMetal&#45;&gt;Embassy --><g id="edge8" class="edge"><title>BareMetal-&gt;Embassy</title><path fill="none" stroke="#000000" d="M342.5843,-73.4551C362.4187,-63.6719 387.1197,-51.4883 408.2202,-41.0806"/><polygon fill="#000000" stroke="#000000" points="409.9035,-44.1529 417.3237,-36.5904 406.807,-37.8751 409.9035,-44.1529"/></g><!-- Ferrocene --><g id="node4" class="node"><title>Ferrocene</title><polygon fill="#00cd00" stroke="#000000" points="125.548,-.5 125.548,-36.5 234.452,-36.5 234.452,-.5 125.548,-.5"/><text text-anchor="middle" x="180" y="-14.3" font-family="Times,serif" font-size="14.00" fill="#000000">Using Ferrocene</text></g><!-- Fundamentals --><g id="node5" class="node"><title>Fundamentals</title><polygon fill="#00cd00" stroke="#000000" points="244.1427,-219.5 244.1427,-255.5 367.8573,-255.5 367.8573,-219.5 244.1427,-219.5"/><text text-anchor="middle" x="306" y="-233.3" font-family="Times,serif" font-size="14.00" fill="#000000">Rust Fundamentals</text></g><!-- Fundamentals&#45;&gt;Applied --><g id="edge1" class="edge"><title>Fundamentals-&gt;Applied</title><path fill="none" stroke="#000000" d="M306,-219.4551C306,-211.3828 306,-201.6764 306,-192.6817"/><polygon fill="#000000" stroke="#000000" points="309.5001,-192.5903 306,-182.5904 302.5001,-192.5904 309.5001,-192.5903"/></g><!-- NoStd&#45;&gt;Ferrocene --><g id="edge4" class="edge"><title>NoStd-&gt;Ferrocene</title><path fill="none" stroke="#000000" d="M180,-73.4551C180,-65.3828 180,-55.6764 180,-46.6817"/><polygon fill="#000000" stroke="#000000" points="183.5001,-46.5903 180,-36.5904 176.5001,-46.5904 183.5001,-46.5903"/></g><!-- WhyFerrocene --><g id="node8" class="node"><title>WhyFerrocene</title><polygon fill="#add8e6" stroke="#000000" points="385.5543,-219.5 385.5543,-255.5 494.4457,-255.5 494.4457,-219.5 385.5543,-219.5"/><text text-anchor="middle" x="440" y="-233.3" font-family="Times,serif" font-size="14.00" fill="#000000">Why Ferrocene?</text></g><!-- WhyRust --><g id="node9" class="node"><title>WhyRust</title><polygon fill="#add8e6" stroke="#000000" points="512,-219.5 512,-255.5 620,-255.5 620,-219.5 512,-219.5"/><text text-anchor="middle" x="565.8005" y="-233.3" font-family="Times,serif" font-size="14.00" fill="#000000">Why Rust?</text></g><!-- Async&#45;&gt;Embassy --><g id="edge9" class="edge"><title>Async-&gt;Embassy</title><path fill="none" stroke="#000000" d="M565.4157,-73.4551C545.5813,-63.6719 520.8803,-51.4883 499.7798,-41.0806"/><polygon fill="#000000" stroke="#000000" points="501.193,-37.8751 490.6763,-36.5904 498.0965,-44.1529 501.193,-37.8751"/></g></g></svg></div></a></h2>
+<ul>
+<li><strong>Why Rust?</strong>: A (stand-alone) half-day tour of Rust for decision-makers, technical leads and managers.</li>
+<li><strong>Why Ferrocene?</strong>: A (stand-alone) 60 minute introduction to Ferrocene.</li>
+<li><strong>Rust Fundamentals</strong>: Covers the basics - types, writing functions, using iterators.</li>
+<li><strong>Applied Rust</strong>: Using Rust with Windows, macOS or Linux.</li>
+<li><strong>Advanced Rust</strong>: Deep-dives into specific topics.</li>
+<li><strong>No-Std Rust</strong>: Rust without the Standard Library.</li>
+<li><strong>Bare-Metal Rust</strong>: Rust on a microcontroller.</li>
+<li><strong>Async Rust</strong>: Futures, Polling, Tokio, and all that jazz.</li>
+<li><strong>Rust and WebAssembly</strong>: Using Rust to build WASM binaries, run in a sandbox or in an HTML page</li>
+<li><strong>Ferrocene</strong>: Working with our qualified toolchain.</li>
+<li><strong>Using Embassy</strong>: Async-Rust on a microcontroller.</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+                            <a rel="next prefetch" href="glossary.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+                    <a rel="next prefetch" href="glossary.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
