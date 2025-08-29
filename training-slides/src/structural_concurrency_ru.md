@@ -373,3 +373,10 @@ Notes:
 ## Спасибо за внимание
 
 Вопросы?
+
+## Примечания
+
+- Исторический пост о проблеме: [Leakpocalypse](https://cglab.ca/~abeinges/blah/everyone-poops/#leakpocalypse)
+- Что такое структурная конкурентность: <br> [Structured concurrency](https://blog.yoshuawuyts.com/tree-structured-concurrency/)
+- Мой пост о Forget: [Myosotis](https://zetanumbers.github.io/book/myosotis.html)
+- RFC с Forget маркером: [rust-lang/rfcs#3782](https://github.com/rust-lang/rfcs/pull/3782)
