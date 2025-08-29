@@ -51,7 +51,7 @@ function build_and_store {
         --output-dir "${OUTPUT_DIR}/$1/slides" \
         --mdbook-path ./training-slides \
         --index-template ./training-slides/index-template.html
-    cp -r "${OUTPUT_DIR}/$1/book/images" "${OUTPUT_DIR}/$1/slides"
+    # cp -r "${OUTPUT_DIR}/$1/book/images" "${OUTPUT_DIR}/$1/slides"
 }
 
 # Build what we currently have checked out

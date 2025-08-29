@@ -1,5 +1,3 @@
-![Our cute logo!](images/logo_ferrous-systems_rgb.png)
-
 # Introduction
 
 This book contains our training material, divided up into individual slide decks. Each deck is a *lesson*. Those *lessons* combine to form a *module*, which is taught during a series of *sessions* within a *training*. See [the glossary](./glossary.md) for more details.
